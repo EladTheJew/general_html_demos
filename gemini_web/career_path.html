@@ -64,6 +64,21 @@
             content: '- ';
             color: #EF4444;
         }
+        .syllabus-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.5s ease-out;
+        }
+        .syllabus-content.expanded {
+            max-height: 1000px;
+            transition: max-height 0.5s ease-in;
+        }
+        .syllabus-button {
+            transition: transform 0.3s;
+        }
+        .syllabus-button.rotated {
+            transform: rotate(180deg);
+        }
     </style>
 </head>
 <body class="antialiased">
@@ -219,6 +234,7 @@
                     skills: ['Programming Languages (Python, JavaScript, Java)', 'Data Structures & Algorithms', 'Version Control (Git)', 'Problem-Solving'],
                     salary: 110000,
                     growth: 25,
+                    syllabus: null
                 },
                 'data': {
                     id: 'data',
@@ -229,6 +245,7 @@
                     skills: ['Python/R', 'SQL', 'Statistics & Machine Learning', 'Data Visualization', 'Communication'],
                     salary: 120000,
                     growth: 35,
+                    syllabus: null
                 },
                 'ux': {
                     id: 'ux',
@@ -239,6 +256,7 @@
                     skills: ['Design Tools (Figma, Sketch)', 'Prototyping', 'User Research', 'Visual Design', 'Empathy'],
                     salary: 95000,
                     growth: 16,
+                    syllabus: null
                 },
                 'cyber': {
                     id: 'cyber',
@@ -249,6 +267,7 @@
                     skills: ['Network Security', 'Ethical Hacking', 'Cryptography', 'Security Information and Event Management (SIEM)', 'Attention to Detail'],
                     salary: 105000,
                     growth: 32,
+                    syllabus: null
                 },
                 'cloud': {
                     id: 'cloud',
@@ -259,6 +278,38 @@
                     skills: ['Cloud Platforms (AWS, Azure, GCP)', 'Linux', 'Networking', 'Scripting (Python, Bash)', 'Containers (Docker, Kubernetes)'],
                     salary: 115000,
                     growth: 15,
+                    syllabus: `
+                        <div class="mb-6">
+                            <h4 class="text-2xl font-bold mb-4 text-amber-800">DevOps Syllabus for Beginners</h4>
+                            <p class="text-gray-600 mb-4">This syllabus provides a structured path from foundational IT knowledge to the specific tools used by DevOps professionals.</p>
+                            
+                            <h5 class="font-bold text-lg text-amber-700">Phase 1: Foundational Skills</h5>
+                            <ul class="list-disc list-inside text-gray-600 mb-4">
+                                <li><b>Module 1: Introduction to Computing and DevOps</b> (10 hours) - Understand the core concepts of software development and the purpose of DevOps.</li>
+                                <li><b>Module 2: The Command Line & Linux</b> (60 hours) - Master the Linux command line.</li>
+                                <li><b>Module 3: Learning to Code</b> (65 hours) - Learn Python and Git/GitHub for automation and version control.</li>
+                            </ul>
+                            
+                            <h5 class="font-bold text-lg text-amber-700">Phase 2: Core DevOps Concepts and Tools</h5>
+                            <ul class="list-disc list-inside text-gray-600 mb-4">
+                                <li><b>Module 4: Cloud Fundamentals</b> (45 hours) - Get hands-on experience with a major cloud provider like AWS.</li>
+                                <li><b>Module 5: Infrastructure as Code (IaC)</b> (30 hours) - Learn to manage infrastructure with Terraform.</li>
+                                <li><b>Module 6: Containerization and Orchestration</b> (80 hours) - Understand Docker and Kubernetes for application management.</li>
+                            </ul>
+                            
+                            <h5 class="font-bold text-lg text-amber-700">Phase 3: The CI/CD Pipeline and Monitoring</h5>
+                            <ul class="list-disc list-inside text-gray-600 mb-4">
+                                <li><b>Module 7: CI/CD Pipelines</b> (50 hours) - Build automated pipelines with Jenkins and GitHub Actions.</li>
+                                <li><b>Module 8: Monitoring and Observability</b> (25 hours) - Learn to monitor systems with Prometheus and Grafana.</li>
+                            </ul>
+                            
+                            <h5 class="font-bold text-lg text-amber-700">Phase 4: Capstone Projects and Job Readiness</h5>
+                            <ul class="list-disc list-inside text-gray-600">
+                                <li><b>Module 9: Practical Projects</b> (100 hours) - Apply all learned concepts to real-world projects.</li>
+                                <li><b>Module 10: Career Workshop</b> - Prepare for job interviews and build a professional presence.</li>
+                            </ul>
+                        </div>
+                    `
                 },
                 'pm': {
                     id: 'pm',
@@ -269,15 +320,29 @@
                     skills: ['Leadership', 'Communication', 'Strategic Thinking', 'Data Analysis', 'User Empathy'],
                     salary: 125000,
                     growth: 10,
+                    syllabus: null
                 },
             };
 
             const pathCardsContainer = document.getElementById('path-cards-container');
             const pathDetailsContainer = document.getElementById('path-details-container');
             let selectedPathCard = null;
+            let currentPathId = null;
 
             function updatePathDetails(pathId) {
                 const path = pathsData[pathId];
+                currentPathId = pathId;
+
+                const hasSyllabus = path.syllabus !== null;
+                const syllabusButtonHtml = hasSyllabus ? `
+                    <button id="syllabusToggle" class="mt-4 flex items-center space-x-2 text-amber-700 font-bold hover:text-amber-900 focus:outline-none">
+                        <span>View DevOps Syllabus</span>
+                        <svg class="h-5 w-5 syllabus-button" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
+                        </svg>
+                    </button>
+                ` : '';
+
                 pathDetailsContainer.style.opacity = 0;
                 
                 setTimeout(() => {
@@ -298,8 +363,14 @@
                                 </div>
                             </div>
                         </div>
+                        ${syllabusButtonHtml}
+                        <div id="syllabusContent" class="syllabus-content mt-6"></div>
                     `;
                     pathDetailsContainer.style.opacity = 1;
+                    
+                    if (hasSyllabus) {
+                        document.getElementById('syllabusToggle').addEventListener('click', toggleSyllabus);
+                    }
                 }, 300);
 
                 const currentCard = document.querySelector(`.path-card[data-id="${pathId}"]`);
@@ -308,6 +379,19 @@
                 }
                 currentCard.classList.add('selected');
                 selectedPathCard = currentCard;
+            }
+
+            function toggleSyllabus() {
+                const syllabusContent = document.getElementById('syllabusContent');
+                const syllabusToggle = document.getElementById('syllabusToggle');
+                const path = pathsData[currentPathId];
+                
+                if (syllabusContent.innerHTML === '') {
+                    syllabusContent.innerHTML = path.syllabus;
+                }
+                
+                syllabusContent.classList.toggle('expanded');
+                syllabusToggle.querySelector('svg').classList.toggle('rotated');
             }
 
             Object.values(pathsData).forEach(path => {
