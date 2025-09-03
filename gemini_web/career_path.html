@@ -1,0 +1,441 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Your Guide to a Career in Tech</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <!-- Chosen Palette: Warm Neutrals -->
+    <!-- Application Structure Plan: A thematic, single-page application with a sticky top navigation for easy access to all sections. The structure guides the user logically: 1. Introduction (Hero), 2. Exploration of individual career paths (interactive cards updating a detail view), 3. Comparison of paths (dynamic chart), and 4. Actionable roadmap (learning and job-seeking steps). This flow was chosen to take a user from broad discovery to specific analysis and finally to a concrete plan, which is ideal for a career switcher who may feel overwhelmed. The interactivity makes exploration engaging and less intimidating than a static report. -->
+    <!-- Visualization & Content Choices: 
+        - Report Info: Career path descriptions, skills, salaries. Goal: Inform/Organize. Viz: Interactive HTML cards. Interaction: Click to update a central detail pane. Justification: Focuses user attention on one role at a time, preventing information overload. Method: Vanilla JS DOM manipulation.
+        - Report Info: Salary and job growth data across roles. Goal: Compare. Viz: Horizontal Bar Chart. Interaction: Radio buttons to switch between viewing 'Salary' and 'Job Growth'. Justification: Provides immediate visual comparison of key decision-making metrics. Library: Chart.js (Canvas).
+        - Report Info: Learning methods and job search steps. Goal: Organize/Inform. Viz: Styled HTML cards and a numbered process flow diagram. Interaction: None, focus on clear textual presentation. Justification: This information is procedural and benefits from a clear, static, easy-to-read layout. Method: HTML/Tailwind.
+    -->
+    <!-- CONFIRMATION: NO SVG graphics used. NO Mermaid JS used. -->
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #FDFBF8;
+            color: #383838;
+        }
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 400px;
+            max-height: 50vh;
+        }
+        .nav-link {
+            transition: color 0.3s, border-bottom-color 0.3s;
+        }
+        .nav-link:hover {
+            color: #D97706;
+        }
+        .nav-link.active {
+            color: #D97706;
+            border-bottom-color: #D97706;
+        }
+        .path-card {
+            transition: transform 0.3s, box-shadow 0.3s;
+        }
+        .path-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .path-card.selected {
+            border-color: #F59E0B;
+            transform: translateY(-2px);
+            box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.4);
+        }
+        .pro-con-list li::before {
+            content: '+ ';
+            color: #10B981;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+        .pro-con-list li.con::before {
+            content: '- ';
+            color: #EF4444;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <header id="header" class="bg-white/80 backdrop-blur-md sticky top-0 z-50 shadow-sm">
+        <nav class="container mx-auto px-6 py-3 flex justify-between items-center">
+            <h1 class="text-xl font-bold text-amber-700">Tech Career Guide</h1>
+            <div class="hidden md:flex space-x-8">
+                <a href="#paths" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Career Paths</a>
+                <a href="#comparison" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Compare Roles</a>
+                <a href="#roadmap" class="nav-link text-gray-600 border-b-2 border-transparent pb-1">Your Roadmap</a>
+            </div>
+        </nav>
+    </header>
+
+    <main>
+        <section id="hero" class="py-20 md:py-32 bg-amber-50">
+            <div class="container mx-auto px-6 text-center">
+                <h2 class="text-4xl md:text-5xl font-bold text-amber-800 mb-4">Ready to Switch to a Career in Tech?</h2>
+                <p class="text-lg md:text-xl text-gray-700 max-w-3xl mx-auto">
+                    The tech industry is vast and full of opportunities. This guide is designed to help you understand the different paths, what it takes to succeed, and how to get started on your journey.
+                </p>
+            </div>
+        </section>
+
+        <section id="paths" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold mb-2">Explore Career Paths</h3>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        This section provides an overview of some of the most popular and in-demand roles in the tech industry. Click on a card to learn more about the role, its responsibilities, required skills, and salary potential. This will help you find a path that aligns with your interests and strengths.
+                    </p>
+                </div>
+                
+                <div id="path-cards-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+                </div>
+
+                <div id="path-details-container" class="bg-white p-8 rounded-xl shadow-lg transition-opacity duration-500 min-h-[300px]">
+                </div>
+            </div>
+        </section>
+
+        <section id="comparison" class="py-16 md:py-24 bg-amber-50">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h3 class="text-3xl font-bold mb-2">Compare Key Metrics</h3>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Choosing a career path involves considering factors like salary and future demand. The interactive chart below allows you to visually compare these roles based on average salary and projected job growth. Use the controls to switch between different metrics and see how the roles stack up against each other.
+                    </p>
+                </div>
+
+                <div class="bg-white p-6 rounded-xl shadow-lg">
+                    <div class="flex justify-center space-x-6 mb-6">
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="metric" value="salary" class="form-radio text-amber-600" checked>
+                            <span class="text-gray-700 font-medium">Average Salary (USD)</span>
+                        </label>
+                        <label class="flex items-center space-x-2 cursor-pointer">
+                            <input type="radio" name="metric" value="growth" class="form-radio text-amber-600">
+                            <span class="text-gray-700 font-medium">Job Growth (10yr %)</span>
+                        </label>
+                    </div>
+                    <div class="chart-container">
+                        <canvas id="comparisonChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="roadmap" class="py-16 md:py-24">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-16">
+                    <h3 class="text-3xl font-bold mb-2">Build Your Roadmap</h3>
+                    <p class="text-gray-600 max-w-2xl mx-auto">
+                        Once you have an idea of the path you want to pursue, the next step is to plan your journey. This section outlines different learning strategies and the essential steps to take when you're ready to start your job search. A solid plan is key to a successful career transition.
+                    </p>
+                </div>
+
+                <div class="grid md:grid-cols-2 gap-12">
+                    <div>
+                        <h4 class="text-2xl font-bold mb-6 text-center md:text-left">1. Choose Your Learning Method</h4>
+                        <div class="space-y-6">
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h5 class="font-bold text-lg mb-2 text-amber-700">University Degree</h5>
+                                <p class="text-gray-600">A traditional path providing a deep theoretical foundation. Best for those starting out or seeking roles in research or academia. Can be time-consuming and expensive.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h5 class="font-bold text-lg mb-2 text-amber-700">Coding Bootcamps</h5>
+                                <p class="text-gray-600">Intensive, career-focused programs designed to get you job-ready in 3-9 months. They offer structured curriculum and career support but require a significant time and financial commitment.</p>
+                            </div>
+                            <div class="bg-white p-6 rounded-lg shadow-md">
+                                <h5 class="font-bold text-lg mb-2 text-amber-700">Online Courses & Self-Study</h5>
+                                <p class="text-gray-600">A flexible and affordable option using platforms like Coursera, Udemy, or freeCodeCamp. Requires strong self-discipline and motivation to build a curriculum and stay on track.</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div>
+                        <h4 class="text-2xl font-bold mb-6 text-center md:text-left">2. Land Your First Tech Job</h4>
+                        <div class="space-y-4">
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg">1</div>
+                                <div class="ml-4">
+                                    <h5 class="font-bold text-lg">Build a Portfolio</h5>
+                                    <p class="text-gray-600">Create 2-3 high-quality projects that showcase your skills. This is your proof of ability, often more important than a resume for entry-level roles.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg">2</div>
+                                <div class="ml-4">
+                                    <h5 class="font-bold text-lg">Craft Your Resume</h5>
+                                    <p class="text-gray-600">Tailor your resume to tech roles. Highlight transferable skills from your previous career, such as problem-solving, project management, and communication.</p>
+                                </div>
+                            </div>
+                            <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg">3</div>
+                                <div class="ml-4">
+                                    <h5 class="font-bold text-lg">Network Strategically</h5>
+                                    <p class="text-gray-600">Engage with people in the industry online (LinkedIn, Twitter) and at local meetups. Networking can lead to mentorship and job referrals.</p>
+                                </div>
+                            </div>
+                             <div class="flex items-start">
+                                <div class="flex-shrink-0 h-10 w-10 rounded-full bg-amber-600 text-white flex items-center justify-center font-bold text-lg">4</div>
+                                <div class="ml-4">
+                                    <h5 class="font-bold text-lg">Prepare for Interviews</h5>
+                                    <p class="text-gray-600">Practice common technical questions (e.g., LeetCode for developers) and be ready to talk in-depth about your portfolio projects and behavioral questions.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+    
+    <footer class="bg-gray-800 text-white py-8">
+        <div class="container mx-auto px-6 text-center">
+            <p>&copy; 2025 Tech Career Guide. Start your journey today.</p>
+        </div>
+    </footer>
+
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const pathsData = {
+                'swe': {
+                    id: 'swe',
+                    title: 'Software Engineer',
+                    icon: '💻',
+                    description: 'Software engineers design, develop, and maintain software applications. They are problem-solvers who write code to build everything from mobile apps to large-scale enterprise systems.',
+                    responsibilities: ['Writing clean, efficient code', 'Collaborating with teams to define and ship new features', 'Testing and debugging software', 'Maintaining and improving existing codebases'],
+                    skills: ['Programming Languages (Python, JavaScript, Java)', 'Data Structures & Algorithms', 'Version Control (Git)', 'Problem-Solving'],
+                    salary: 110000,
+                    growth: 25,
+                },
+                'data': {
+                    id: 'data',
+                    title: 'Data Scientist',
+                    icon: '📊',
+                    description: 'Data scientists use analytical, statistical, and programming skills to collect, analyze, and interpret large data sets. They extract insights from data to help businesses make smarter decisions.',
+                    responsibilities: ['Cleaning and processing data', 'Building predictive models and machine learning algorithms', 'Creating data visualizations and dashboards', 'Communicating findings to stakeholders'],
+                    skills: ['Python/R', 'SQL', 'Statistics & Machine Learning', 'Data Visualization', 'Communication'],
+                    salary: 120000,
+                    growth: 35,
+                },
+                'ux': {
+                    id: 'ux',
+                    title: 'UX/UI Designer',
+                    icon: '🎨',
+                    description: 'UX/UI designers focus on creating user-friendly and visually appealing digital products. UX (User Experience) focuses on the overall feel of the experience, while UI (User Interface) focuses on the layout and visual elements.',
+                    responsibilities: ['Conducting user research and testing', 'Creating wireframes, prototypes, and mockups', 'Designing user flows and interfaces', 'Collaborating with engineers and product managers'],
+                    skills: ['Design Tools (Figma, Sketch)', 'Prototyping', 'User Research', 'Visual Design', 'Empathy'],
+                    salary: 95000,
+                    growth: 16,
+                },
+                'cyber': {
+                    id: 'cyber',
+                    title: 'Cybersecurity Analyst',
+                    icon: '🛡️',
+                    description: 'Cybersecurity analysts protect an organization\'s computer networks and systems. They monitor for security breaches, investigate violations when they occur, and work to prevent future attacks.',
+                    responsibilities: ['Monitoring network traffic for suspicious activity', 'Implementing security measures and controls', 'Conducting vulnerability assessments', 'Responding to security incidents'],
+                    skills: ['Network Security', 'Ethical Hacking', 'Cryptography', 'Security Information and Event Management (SIEM)', 'Attention to Detail'],
+                    salary: 105000,
+                    growth: 32,
+                },
+                'cloud': {
+                    id: 'cloud',
+                    title: 'Cloud Engineer',
+                    icon: '☁️',
+                    description: 'Cloud engineers design, build, and manage an organization\'s cloud computing infrastructure and services on platforms like AWS, Azure, or Google Cloud. They focus on scalability, performance, and security.',
+                    responsibilities: ['Deploying applications on the cloud', 'Managing and monitoring cloud infrastructure', 'Implementing cloud security best practices', 'Automating infrastructure with code (IaC)'],
+                    skills: ['Cloud Platforms (AWS, Azure, GCP)', 'Linux', 'Networking', 'Scripting (Python, Bash)', 'Containers (Docker, Kubernetes)'],
+                    salary: 115000,
+                    growth: 15,
+                },
+                'pm': {
+                    id: 'pm',
+                    title: 'Product Manager',
+                    icon: '🚀',
+                    description: 'Product managers are the strategic drivers behind a product. They define the product vision, strategy, and roadmap, and they work with cross-functional teams to build and launch products that meet user needs and business goals.',
+                    responsibilities: ['Defining product strategy and roadmap', 'Gathering and prioritizing product requirements', 'Working with design, engineering, and marketing teams', 'Analyzing market trends and competition'],
+                    skills: ['Leadership', 'Communication', 'Strategic Thinking', 'Data Analysis', 'User Empathy'],
+                    salary: 125000,
+                    growth: 10,
+                },
+            };
+
+            const pathCardsContainer = document.getElementById('path-cards-container');
+            const pathDetailsContainer = document.getElementById('path-details-container');
+            let selectedPathCard = null;
+
+            function updatePathDetails(pathId) {
+                const path = pathsData[pathId];
+                pathDetailsContainer.style.opacity = 0;
+                
+                setTimeout(() => {
+                    pathDetailsContainer.innerHTML = `
+                        <h4 class="text-2xl font-bold mb-4 text-amber-800">${path.icon} ${path.title}</h4>
+                        <p class="text-gray-600 mb-6">${path.description}</p>
+                        <div class="grid md:grid-cols-2 gap-6">
+                            <div>
+                                <h5 class="font-bold text-lg mb-2">Key Responsibilities</h5>
+                                <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                    ${path.responsibilities.map(r => `<li>${r}</li>`).join('')}
+                                </ul>
+                            </div>
+                            <div>
+                                <h5 class="font-bold text-lg mb-2">Essential Skills</h5>
+                                <div class="flex flex-wrap gap-2">
+                                    ${path.skills.map(s => `<span class="bg-amber-100 text-amber-800 text-sm font-medium px-3 py-1 rounded-full">${s}</span>`).join('')}
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                    pathDetailsContainer.style.opacity = 1;
+                }, 300);
+
+                const currentCard = document.querySelector(`.path-card[data-id="${pathId}"]`);
+                if (selectedPathCard) {
+                    selectedPathCard.classList.remove('selected');
+                }
+                currentCard.classList.add('selected');
+                selectedPathCard = currentCard;
+            }
+
+            Object.values(pathsData).forEach(path => {
+                const card = document.createElement('div');
+                card.className = 'path-card bg-white p-6 rounded-lg shadow-md cursor-pointer border-2 border-transparent';
+                card.dataset.id = path.id;
+                card.innerHTML = `
+                    <div class="text-4xl mb-3">${path.icon}</div>
+                    <h4 class="text-xl font-bold text-gray-800">${path.title}</h4>
+                `;
+                card.addEventListener('click', () => updatePathDetails(path.id));
+                pathCardsContainer.appendChild(card);
+            });
+
+            updatePathDetails('swe');
+
+            const ctx = document.getElementById('comparisonChart').getContext('2d');
+            let comparisonChart;
+
+            const chartData = {
+                labels: Object.values(pathsData).map(p => p.title.replace(' ', '\n')),
+                datasets: [
+                    {
+                        label: 'Average Salary (USD)',
+                        data: Object.values(pathsData).map(p => p.salary),
+                        backgroundColor: 'rgba(245, 158, 11, 0.6)',
+                        borderColor: 'rgba(245, 158, 11, 1)',
+                        borderWidth: 1
+                    },
+                    {
+                        label: '10-Year Job Growth (%)',
+                        data: Object.values(pathsData).map(p => p.growth),
+                        backgroundColor: 'rgba(5, 150, 105, 0.6)',
+                        borderColor: 'rgba(5, 150, 105, 1)',
+                        borderWidth: 1
+                    }
+                ]
+            };
+
+            function createOrUpdateChart(metric) {
+                if (comparisonChart) {
+                    comparisonChart.destroy();
+                }
+
+                const activeDataset = metric === 'salary' ? chartData.datasets[0] : chartData.datasets[1];
+                const label = activeDataset.label;
+
+                comparisonChart = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: chartData.labels,
+                        datasets: [activeDataset]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: function(context) {
+                                        let value = context.raw;
+                                        if (metric === 'salary') {
+                                            return `${label}: $${value.toLocaleString()}`;
+                                        }
+                                        return `${label}: ${value}%`;
+                                    }
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                beginAtZero: true,
+                                title: {
+                                    display: true,
+                                    text: label,
+                                    font: { size: 14 }
+                                }
+                            },
+                            y: {
+                                ticks: {
+                                    autoSkip: false
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            createOrUpdateChart('salary');
+
+            document.querySelectorAll('input[name="metric"]').forEach(radio => {
+                radio.addEventListener('change', (e) => {
+                    createOrUpdateChart(e.target.value);
+                });
+            });
+            
+            const sections = document.querySelectorAll('main section');
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            const observerOptions = {
+                root: null,
+                rootMargin: '0px',
+                threshold: 0.4 
+            };
+            
+            const observer = new IntersectionObserver((entries, observer) => {
+                entries.forEach(entry => {
+                    if(entry.isIntersecting){
+                        const id = entry.target.getAttribute('id');
+                        navLinks.forEach(link => {
+                           link.classList.remove('active');
+                           if(link.getAttribute('href') === `#${id}`){
+                               link.classList.add('active');
+                           }
+                        });
+                    }
+                });
+            }, observerOptions);
+            
+            sections.forEach(section => {
+                observer.observe(section);
+            });
+
+        });
+    </script>
+</body>
+</html>
